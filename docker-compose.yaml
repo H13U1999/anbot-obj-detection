@@ -11,6 +11,6 @@ services:
       - ./services/discord-bot/:/app
       - ./services/discord-bot/main.py:/app/main.py
     environment:
-      PREFIX: "!"
-      TOKEN: "ODY1NzYyOTcyMzYwNzY5NTg2.YPIumQ.IpmorJpnG1kcsFIIHnLTqr9FQW0"
+      PREFIX: "${PREFIX}"
+      TOKEN: "${TOKEN}"
      
