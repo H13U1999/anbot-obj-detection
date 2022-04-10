@@ -133,7 +133,10 @@ async def on_message(message):
     if(message.author == client.user):
         return
     if message.content.startswith('hello'):
-        await message.channel.send('hi!')
+        print(
+            "here hre"
+        )
+        await message.channel.send('kkk!')
     if message.content.startswith("play"):
         await message.channel.send("What do you want to play?")
 
