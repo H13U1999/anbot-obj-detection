@@ -1,8 +1,21 @@
 version: "3.7"
 
 services:
-  # detection:
-  #   build: .
+  detection:
+    build:  ./services/detection
+    restart: always
+    volumes:
+      - ./services/detection/:/app
+      - ./services/detection/main.py:/app/main.py
+    environment:
+      FLASK_APP: "${FLASK_APP}"
+      API_KEY: "${API_KEY}"
+      AUTH_DOMAIN: "${AUTH_DOMAIN}"
+      PROJECT_ID: "${PROJECT_ID}"
+      STORAGE_BUCKET: "${STORAGE_BUCKET}"
+      MESSAGING_SENDER_ID: "${MESSAGING_SENDER_ID}"
+      APP_ID: "${APP_ID}"
+      MEASUREMENT_ID: "${MEASUREMENT_ID}"
 
   disord-bot:
     build:  ./services/discord-bot
