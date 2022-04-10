@@ -59,10 +59,10 @@ async def play(ctx, *url):
             info = ydl.extract_info(
                 link, download=False)
         URL = info['url']
-        print("here here")
+        print("here here",URL)
         voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
         print("fasfasdfas")
-        await ctx.send('Bot is playing ' + title + '\n' + link)
+        await ctx.send('Bot is playing '+URL + title + '\n' + link)
 
 
 # check if the bot is already playing
