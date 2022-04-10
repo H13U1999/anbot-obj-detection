@@ -9,11 +9,16 @@ import os
 from dotenv import load_dotenv
 import emoji
 from youtubesearchpython import VideosSearch
+import requests
+import json
 
 load_dotenv()
 
 client = commands.Bot(command_prefix=os.environ.get('PREFIX'))
 
+headers_ = {
+"Content-Type": "application/json"
+}
 
 @client.command()
 async def join(ctx):
@@ -59,10 +64,8 @@ async def play(ctx, *url):
             info = ydl.extract_info(
                 link, download=False)
         URL = info['url']
-        print("here here",URL)
         voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
-        print("fasfasdfas")
-        await ctx.send('Bot is playing '+URL + title + '\n' + link)
+        await ctx.send('Bot is playing ' + title + '\n' + link)
 
 
 # check if the bot is already playing
@@ -133,15 +136,18 @@ async def on_message(message):
     if(message.author == client.user):
         return
     if message.content.startswith('hello'):
-        print(
-            "here hre"
-        )
-        await message.channel.send('kkk!')
+        await message.channel.send('kkk')
     if message.content.startswith("play"):
         await message.channel.send("What do you want to play?")
-
-    print("=====================")
-    print(message.attachments)
+    if len(message.attachments)>0:
+        if message.attachments[0].url[-4:] == '.jpg' or message.attachments[0].url[-4:] == '.png':
+            body ={"img": message.attachments[0].url}
+            req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
+            await message.channel.send(req.json()["url"])
+    elif message.content[-4:] == '.jpg' or message.content[-4:] == '.png':
+        body ={"img": message.content}
+        req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
+        await message.channel.send(req.json()["url"])
 
 
 @client.event

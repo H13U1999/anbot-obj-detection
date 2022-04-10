@@ -36,7 +36,7 @@ def return_detection():
     name = predictor.get_detection(img_url)
     storage.child(name).put(name)
     os.remove(name)
-    return storage.child(name).get_url()
+    return {"url":storage.child(name).get_url()}
 
 @app.route("/health",methods=["GET"])
 def health_check():

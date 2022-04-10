@@ -162,7 +162,7 @@ class DiscordBotObjectDetection:
                  
         plt.axis('off')
         name = str(uuid.uuid1())+".png"
-        plt.savefig(name)
+        plt.savefig(name,transparent = True)        
         return name
 
 
