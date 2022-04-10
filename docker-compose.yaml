@@ -4,6 +4,8 @@ services:
   detection:
     build:  ./services/detection
     restart: always
+    ports:
+      - "5000:5000"
     volumes:
       - ./services/detection/:/app
       - ./services/detection/main.py:/app/main.py

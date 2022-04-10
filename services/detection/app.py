@@ -33,6 +33,7 @@ user = auth.sign_in_with_email_and_password(email, password)
 
 
 app = Flask(__name__)
+app.run(host="0.0.0.0", port=5000)
 
 @app.route("/obj-dect",methods=["POST"])
 def return_detection():
@@ -40,4 +41,4 @@ def return_detection():
     name = predictor.get_detection(img_url)
     storage.child(name).put(name)
     os.remove(name)
-    return storage.child(name).get_url(user['idToken'])
+    return storage.child(name).get_url()
