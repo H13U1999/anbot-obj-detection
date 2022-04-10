@@ -1,1 +1,2 @@
 .env
+services/detection/yolov5x.pt
