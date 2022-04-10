@@ -166,5 +166,5 @@ class DiscordBotObjectDetection:
 # image_url = "https://scontent.fsgn8-1.fna.fbcdn.net/v/t39.30808-6/277743544_3223981264584371_2619699800982319351_n.jpg?_nc_cat=1&ccb=1-5&_nc_sid=8bfeb9&_nc_ohc=iGHB3CL-BYoAX9TQgE6&tn=vFtgx7VrvY8PrC9t&_nc_ht=scontent.fsgn8-1.fna&oh=00_AT9OEoA8sN_CX7MggPbTNO25yxDHZLIKsLKlQIJ4oDREZg&oe=624CD4F6"
 # image_url = "https://scontent.fsgn8-2.fna.fbcdn.net/v/t39.30808-6/277679489_1175399876330896_7891278549825440127_n.jpg?_nc_cat=1&ccb=1-5&_nc_sid=730e14&_nc_ohc=FUj97GbKed4AX8KzgeV&_nc_ht=scontent.fsgn8-2.fna&oh=00_AT9hl2owF-dYIHYXJlXZBXy1UJuNUp5B3QLQNUwjXmmkow&oe=624CD9E9"
 # image_url = "https://i.guim.co.uk/img/media/2e19708acea1a16c8bc748d7da3c57f3b3395627/0_0_5324_3196/master/5324.jpg?width=465&quality=45&auto=format&fit=max&dpr=2&s=e51afaf3a45ff805cb9ecfd231243427"
-obj = DiscordBotObjectDetection(image_url)
-obj.get_detection()
+# obj = DiscordBotObjectDetection(image_url)
+# obj.get_detection()

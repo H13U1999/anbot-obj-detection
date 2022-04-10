@@ -26,10 +26,6 @@ firebase = pyrebase.initialize_app(firebaseConfig)
 storage = firebase.storage()
 
 auth = firebase.auth()
-email = "hieukfc69@gmail.com"
-password = "123456789"
-user = auth.sign_in_with_email_and_password(email, password)
-
 
 
 app = Flask(__name__)

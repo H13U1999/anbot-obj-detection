@@ -8,7 +8,9 @@ services:
       - "5000:5000"
     volumes:
       - ./services/detection/:/app
+      - ./services/detection/main.py:/app/app.py
       - ./services/detection/main.py:/app/main.py
+      - ./services/detection/yolov5x.ppt:/app/yolov5x.ppt
     environment:
       FLASK_APP: "${FLASK_APP}"
       API_KEY: "${API_KEY}"

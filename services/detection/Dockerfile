@@ -10,5 +10,5 @@ RUN apt install python3-tk  libgl1 -y
 
 COPY . .
 
-CMD ["python3", "main.py"]
+CMD ["python3", "app.py"]
 
