@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  # detection:
+  #   build: .
+
+  disord-bot:
+    build:  ./services/discord-bot
+    restart: always
+    volumes:
+      - ./services/discord-bot/:/app
+      - ./services/discord-bot/main.py:/app/main.py
+    environment:
+      PREFIX: "!"
+      TOKEN: "ODY1NzYyOTcyMzYwNzY5NTg2.YPIumQ.IpmorJpnG1kcsFIIHnLTqr9FQW0"
+     
