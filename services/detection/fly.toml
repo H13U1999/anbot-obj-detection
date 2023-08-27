@@ -1,0 +1,51 @@
+# fly.toml app configuration file generated for an-bot-obj-dect on 2023-08-27T12:40:49+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "an-bot-obj-dect"
+primary_region = "sin"
+kill_signal = "SIGTERM"
+kill_timeout = "2m0s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  AUTH_DOMAIN = "an-bot-obj-dect.firebaseapp.com"
+  MEASUREMENT_ID = "G-LPKDW93STP"
+  MESSAGING_SENDER_ID = "631283162914"
+  PORT = "8080"
+  PROJECT_ID = "an-bot-obj-dect"
+  STORAGE_BUCKET = "an-bot-obj-dect.appspot.com"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+  [services.concurrency]
+    hard_limit = 5
+    soft_limit = 3
+
+  [[services.tcp_checks]]
+    interval = "10s"
+    timeout = "2s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "2s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+    protocol = "http"
