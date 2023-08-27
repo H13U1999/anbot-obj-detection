@@ -21,19 +21,28 @@ headers_ = {
 }
 
 @client.command()
-async def dect(ctx, *bien, message):
-    
-    print(ctx)
-    print(bien)
-    if len(message.attachments)>0:
-        if message.attachments[0].url[-4:] == '.jpg' or message.attachments[0].url[-4:] == '.png':
-            body ={"img": message.attachments[0].url}
+async def dect(ctx,  *message):
+        if ctx.message.attachments:
+            url = str(ctx.message.attachments[0])
+            body ={"img": url}
             req = requests.post('https://an-bot-obj-dect.fly.dev/obj-dect', json=body, headers=headers_)
-            await message.channel.send(req.json()["url"])
-    elif message.content[-4:] == '.jpg' or message.content[-4:] == '.png':
-        body ={"img": message.content}
-        req = requests.post('https://an-bot-obj-dect.fly.dev/obj-dect', json=body, headers=headers_)
-        await ctx.send(req.json()["url"])
+            await ctx.send(req.json()["url"])
+        else:
+            await ctx.send("Please paste image")
+
+@client.command()
+async def nts(ctx,  *message):
+        if ctx.message.attachments:
+            if len(ctx.message.attachments) == 2:
+                url_1 = str(ctx.message.attachments[1])
+                url_2 = str(ctx.message.attachments[0])
+                body ={"img_1": url_1, "img_2": url_2}
+                req = requests.post('https://an-bot-nts.fly.dev/combine-NTS', json=body, headers=headers_)
+                await ctx.send(req.json()["url"])
+            else:
+                await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
+        else:
+            await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
 
 @client.command()
 async def join(ctx):
