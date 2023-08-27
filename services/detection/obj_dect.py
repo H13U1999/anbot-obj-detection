@@ -101,7 +101,7 @@ class DiscordBotObjectDetection:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
     def load_model(self):
-        model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+        model = torch.hub.load('yolov5-master', 'custom', 'yolov5-master/yolov5x.pt', source='local')
         model.conf = 0.45
         model.iou = 0.5
         return model
