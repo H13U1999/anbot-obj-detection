@@ -21,6 +21,21 @@ headers_ = {
 }
 
 @client.command()
+async def dect(ctx, *bien, message):
+    
+    print(ctx)
+    print(bien)
+    if len(message.attachments)>0:
+        if message.attachments[0].url[-4:] == '.jpg' or message.attachments[0].url[-4:] == '.png':
+            body ={"img": message.attachments[0].url}
+            req = requests.post('https://an-bot-obj-dect.fly.dev/obj-dect', json=body, headers=headers_)
+            await message.channel.send(req.json()["url"])
+    elif message.content[-4:] == '.jpg' or message.content[-4:] == '.png':
+        body ={"img": message.content}
+        req = requests.post('https://an-bot-obj-dect.fly.dev/obj-dect', json=body, headers=headers_)
+        await ctx.send(req.json()["url"])
+
+@client.command()
 async def join(ctx):
     isJoined = False
     voice = get(client.voice_clients, guild=ctx.guild)
@@ -139,15 +154,7 @@ async def on_message(message):
         await message.channel.send('kkk')
     if message.content.startswith("play"):
         await message.channel.send("What do you want to play?")
-    if len(message.attachments)>0:
-        if message.attachments[0].url[-4:] == '.jpg' or message.attachments[0].url[-4:] == '.png':
-            body ={"img": message.attachments[0].url}
-            req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
-            await message.channel.send(req.json()["url"])
-    elif message.content[-4:] == '.jpg' or message.content[-4:] == '.png':
-        body ={"img": message.content}
-        req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
-        await message.channel.send(req.json()["url"])
+
 
 
 @client.event
@@ -169,6 +176,8 @@ def ytVideoSearchLink(search, limit=1):
     list = dict(enumerate(videoSearch.result().get("result"))).get(limit-1)
     print(list)
     return list
+
+
 
 
 client.run(os.environ.get('TOKEN'))
