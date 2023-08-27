@@ -32,7 +32,7 @@ app = Flask(__name__)
 
 @app.route("/obj-dect",methods=["POST"])
 def return_detection():
-    img_url = str(request.json['img'])
+    img_url = str(request.json['img']) 
     name = predictor.get_detection(img_url)
     storage.child(name).put(name)
     os.remove(name)
