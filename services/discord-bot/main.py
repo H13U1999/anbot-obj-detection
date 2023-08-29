@@ -21,6 +21,30 @@ headers_ = {
 }
 
 @client.command()
+async def dect(ctx,  *message):
+        if ctx.message.attachments:
+            url = str(ctx.message.attachments[0])
+            body ={"img": url}
+            req = requests.post(os.environ.get('DECT_API'), json=body, headers=headers_)
+            await ctx.send(req.json()["url"])
+        else:
+            await ctx.send("Please paste image")
+
+@client.command()
+async def nts(ctx,  *message):
+        if ctx.message.attachments:
+            if len(ctx.message.attachments) == 2:
+                url_1 = str(ctx.message.attachments[1])
+                url_2 = str(ctx.message.attachments[0])
+                body ={"img_1": url_1, "img_2": url_2}
+                req = requests.post(os.environ.get('NTS_API'), json=body, headers=headers_)
+                await ctx.send(req.json()["url"])
+            else:
+                await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
+        else:
+            await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
+
+@client.command()
 async def join(ctx):
     isJoined = False
     voice = get(client.voice_clients, guild=ctx.guild)
@@ -139,15 +163,7 @@ async def on_message(message):
         await message.channel.send('kkk')
     if message.content.startswith("play"):
         await message.channel.send("What do you want to play?")
-    if len(message.attachments)>0:
-        if message.attachments[0].url[-4:] == '.jpg' or message.attachments[0].url[-4:] == '.png':
-            body ={"img": message.attachments[0].url}
-            req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
-            await message.channel.send(req.json()["url"])
-    elif message.content[-4:] == '.jpg' or message.content[-4:] == '.png':
-        body ={"img": message.content}
-        req = requests.post('http://detection:5000/obj-dect', json=body, headers=headers_)
-        await message.channel.send(req.json()["url"])
+
 
 
 @client.event
@@ -169,6 +185,8 @@ def ytVideoSearchLink(search, limit=1):
     list = dict(enumerate(videoSearch.result().get("result"))).get(limit-1)
     print(list)
     return list
+
+
 
 
 client.run(os.environ.get('TOKEN'))
