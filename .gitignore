@@ -1,3 +1,8 @@
 .env
 services/detection/yolov5x.pt
 services/__pycache__
+services/discord-bot/envn
+services/discord-bot/.env
+services/discord-bot/__pycache__
+services/detection/env
+.DS_STORE
