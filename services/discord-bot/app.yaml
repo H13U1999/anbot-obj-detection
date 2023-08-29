@@ -1,0 +1,6 @@
+# GCP App Engine config file
+
+runtime: python37
+automatic_scaling:
+  min_idle_instances: 1
+  max_idle_instances: 1
