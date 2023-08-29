@@ -25,7 +25,7 @@ async def dect(ctx,  *message):
         if ctx.message.attachments:
             url = str(ctx.message.attachments[0])
             body ={"img": url}
-            req = requests.post('https://an-bot-obj-dect.fly.dev/obj-dect', json=body, headers=headers_)
+            req = requests.post(os.environ.get('DECT_API'), json=body, headers=headers_)
             await ctx.send(req.json()["url"])
         else:
             await ctx.send("Please paste image")
@@ -37,7 +37,7 @@ async def nts(ctx,  *message):
                 url_1 = str(ctx.message.attachments[1])
                 url_2 = str(ctx.message.attachments[0])
                 body ={"img_1": url_1, "img_2": url_2}
-                req = requests.post('https://an-bot-nts.fly.dev/combine-NTS', json=body, headers=headers_)
+                req = requests.post(os.environ.get('NTS_API'), json=body, headers=headers_)
                 await ctx.send(req.json()["url"])
             else:
                 await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
