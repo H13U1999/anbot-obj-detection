@@ -1,8 +1,8 @@
 """Research bot - initial template.
 
-Trigger: mention the bot in any channel it can read.
+Trigger: mention An Bot, then the `research_for_me:` keyword, then the question.
 
-    @research_for_me what are the tradeoffs between Postgres and SQLite?
+    @An Bot research_for_me: what are the tradeoffs between Postgres and SQLite?
 
 It acknowledges immediately, then runs the research in the background so the
 gateway connection stays responsive.
@@ -30,7 +30,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("research-bot")
 
 ACK_MESSAGE = "Sure, let me do it for you."
+USAGE = "Ask me like this:\n`@An Bot research_for_me: your question here`"
 DISCORD_MESSAGE_LIMIT = 2000
+
+# The keyword that routes a mention to research. Colon optional, case-insensitive,
+# DOTALL so a question can span multiple lines.
+TRIGGER = re.compile(r"^research[_ ]?for[_ ]?me\s*:?\s*(.*)$", re.IGNORECASE | re.DOTALL)
 
 intents = discord.Intents.default()
 intents.message_content = True  # privileged - enable it in the Developer Portal
@@ -60,9 +65,19 @@ async def on_message(message: discord.Message):
     if not mention.search(message.content):
         return
 
-    query = mention.sub("", message.content).strip()
+    rest = mention.sub("", message.content).strip()
+
+    match = TRIGGER.match(rest)
+    if not match:
+        # Mentioned, but not a research request. Point at the right syntax rather
+        # than staying silent - An Bot's other commands use the `!` prefix, so a
+        # bare mention is almost always someone reaching for this.
+        await message.reply(USAGE)
+        return
+
+    query = match.group(1).strip()
     if not query:
-        await message.reply("Mention me with a question and I'll research it.")
+        await message.reply(f"What should I research?\n{USAGE}")
         return
 
     if message.author.id in _in_flight:
