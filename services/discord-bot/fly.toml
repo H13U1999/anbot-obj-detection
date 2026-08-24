@@ -10,9 +10,7 @@ primary_region = "sin"
 [env]
 DECT_API = "https://an-bot-obj-dect.fly.dev/obj-dect"
 NTS_API = "https://an-bot-nts.fly.dev/combine-NTS"
-[[services]]
-protocol = "tcp"
-internal_port = 8080
-auto_stop_machines = false
-auto_start_machines = true
-min_machines_running = 1
+# No [[services]] block: this app holds an outbound WebSocket to Discord and
+# listens on nothing, so it exposes no ports. Machine count is controlled with
+# `fly scale count 1` instead - and must stay at exactly 1, since two processes
+# on one bot token both receive every message and reply twice.
