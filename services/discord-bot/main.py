@@ -1,5 +1,6 @@
 import asyncio
 import io
+import logging
 import os
 import re
 
@@ -14,6 +15,14 @@ from youtubesearchpython import VideosSearch
 import requests
 
 load_dotenv()
+
+# LOG_LEVEL=DEBUG in .env to see every message the bot receives.
+logging.basicConfig(
+    level=os.environ.get('LOG_LEVEL', 'INFO').upper(),
+    format='%(asctime)s %(levelname)-7s %(message)s',
+    datefmt='%H:%M:%S',
+)
+log = logging.getLogger('anbot')
 
 # discord.py 2.x requires intents to be declared. `message_content` is privileged:
 # enable it in the Developer Portal, or prefix commands and the research mention
@@ -60,11 +69,18 @@ async def handle_research(message):
     if not _mentions_bot(message):
         return False
 
-    match = TRIGGER.match(ANY_MENTION.sub("", message.content).strip())
+    stripped = ANY_MENTION.sub("", message.content).strip()
+    log.info("MENTIONED by %s", message.author)
+    log.info("  raw content : %r", message.content)
+    log.info("  after strip : %r", stripped)
+
+    match = TRIGGER.match(stripped)
     if not match:
+        log.info("  -> NO trigger match (expected text to start with 'research_for_me')")
         return False
 
     query = match.group(1).strip()
+    log.info("  -> TRIGGER MATCHED, query=%r", query)
     if not query:
         await message.reply("What should I research?\n" + USAGE)
         return True
@@ -251,7 +267,15 @@ async def search(ctx, *search):
 
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    log.info("=" * 60)
+    log.info("logged in as %s  (id=%s)", client.user, client.user.id)
+    log.info("prefix        : %r", client.command_prefix)
+    log.info("trigger regex : %s", TRIGGER.pattern)
+    log.info("intents: message_content=%s voice_states=%s",
+             intents.message_content, intents.voice_states)
+    for guild in client.guilds:
+        log.info("guild         : %s (id=%s)", guild.name, guild.id)
+    log.info("=" * 60)
 
 
 @client.event
@@ -260,6 +284,16 @@ async def on_message(message):
     # before this check.
     if message.author.bot:
         return
+
+    log.debug("msg #%s %s: %r", getattr(message.channel, 'name', 'dm'),
+              message.author, message.content)
+
+    # The single most common cause of "bot ignores me": the privileged intent is
+    # off, so every message arrives with content stripped to an empty string.
+    if not message.content and not message.attachments:
+        log.warning("EMPTY content from %s - Message Content Intent is almost "
+                    "certainly OFF (Developer Portal > Bot > Privileged Gateway "
+                    "Intents > Message Content Intent)", message.author)
 
     if await handle_research(message):
         return
