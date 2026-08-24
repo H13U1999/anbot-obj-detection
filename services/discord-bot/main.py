@@ -1,24 +1,110 @@
-from time import sleep
-from discord import channel, emoji, message
-from discord.ext import commands
+import asyncio
+import io
+import os
+import re
+
 import discord
+from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
-from youtube_dl import YoutubeDL
-import os
+from yt_dlp import YoutubeDL
 from dotenv import load_dotenv
 import emoji
 from youtubesearchpython import VideosSearch
 import requests
-import json
 
 load_dotenv()
 
-client = commands.Bot(command_prefix=os.environ.get('PREFIX'))
+# discord.py 2.x requires intents to be declared. `message_content` is privileged:
+# enable it in the Developer Portal, or prefix commands and the research mention
+# both arrive with empty content and the bot looks silently dead.
+intents = discord.Intents.default()
+intents.message_content = True
+intents.voice_states = True
+
+client = commands.Bot(command_prefix=os.environ.get('PREFIX', '!'), intents=intents)
 
 headers_ = {
 "Content-Type": "application/json"
 }
+
+# --- research -------------------------------------------------------------
+
+ACK_MESSAGE = "Sure, let me do it for you."
+USAGE = "Ask me like this:\n`@An bot research_for_me: your question here`"
+DISCORD_MESSAGE_LIMIT = 2000
+
+# Colon optional, case-insensitive, DOTALL so a question can span lines.
+TRIGGER = re.compile(r"^research[_ ]?for[_ ]?me\s*:?\s*(.*)$", re.IGNORECASE | re.DOTALL)
+
+# One research run per user at a time - a run is expensive and a mention is one
+# keystroke.
+_in_flight = set()
+
+
+async def handle_research(message):
+    """Return True if this message was a research request and was handled."""
+    # Match the literal mention rather than `client.user.mentioned_in`: that helper
+    # also fires on @everyone, and replying to one of the bot's own messages adds
+    # the bot to `message.mentions` without the user having typed anything.
+    mention = re.compile(r"<@!?%s>" % client.user.id)
+    if not mention.search(message.content):
+        return False
+
+    match = TRIGGER.match(mention.sub("", message.content).strip())
+    if not match:
+        return False
+
+    query = match.group(1).strip()
+    if not query:
+        await message.reply("What should I research?\n" + USAGE)
+        return True
+
+    if message.author.id in _in_flight:
+        await message.reply("I'm still working on your last question - one at a time.")
+        return True
+
+    await message.reply(ACK_MESSAGE)
+    _in_flight.add(message.author.id)
+    # Detach: `on_message` must return quickly or it blocks the gateway heartbeat.
+    asyncio.create_task(_run_research_task(message, query))
+    return True
+
+
+async def _run_research_task(message, query):
+    try:
+        async with message.channel.typing():
+            report = await run_research(query)
+    except Exception as e:
+        print('research failed for %r: %s' % (query, e))
+        await message.reply("Something went wrong while researching that. Try again?")
+        return
+    finally:
+        _in_flight.discard(message.author.id)
+
+    await send_report(message, report)
+
+
+async def run_research(query):
+    """Placeholder for the real research pipeline.
+
+    Replace the body with a call into your agent / API. Keep it async - if the
+    real implementation blocks, wrap it in `asyncio.to_thread(...)`.
+    """
+    await asyncio.sleep(3)  # stand-in for real work
+    return "# Research: %s\n\n_Not implemented yet._" % query
+
+
+async def send_report(message, report):
+    """Post the report, falling back to a file past Discord's 2000-char limit."""
+    if len(report) <= DISCORD_MESSAGE_LIMIT:
+        await message.reply(report)
+        return
+    attachment = discord.File(io.BytesIO(report.encode("utf-8")), filename="research.md")
+    await message.reply("Here's what I found:", file=attachment)
+
+
+# --- ML services ----------------------------------------------------------
 
 @client.command()
 async def dect(ctx,  *message):
@@ -43,6 +129,9 @@ async def nts(ctx,  *message):
                 await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
         else:
             await ctx.send("Please send 2 images : 1. original image, 2. the image contain the style")
+
+
+# --- voice ----------------------------------------------------------------
 
 @client.command()
 async def join(ctx):
@@ -82,6 +171,7 @@ async def play(ctx, *url):
         result = ytVideoSearchLink(searchKey)
         if result is None:
             await ctx.send('Bot cannot find ' + searchKey)
+            return
         link = result.get("link")
         title = result.get("title")
         with YoutubeDL(YDL_OPTIONS) as ydl:
@@ -134,7 +224,7 @@ async def stop(ctx):
 async def leave(ctx):
     voice = get(client.voice_clients, guild=ctx.guild)
     if voice and voice.is_connected():
-        await voice.disconnected()
+        await voice.disconnect()
 
 
 @client.command()
@@ -148,22 +238,29 @@ async def search(ctx, *search):
     print(ytVideoSearchLink(search))
 
 
+# --- events ---------------------------------------------------------------
+
 @client.event
 async def on_ready():
-    print('We have looged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(client))
 
 
 @client.event
 async def on_message(message):
-    await client.process_commands(message)
-    # Ignore messages made by the bot
-    if(message.author == client.user):
+    # Ignore the bot's own messages first - the original processed commands
+    # before this check.
+    if message.author.bot:
         return
+
+    if await handle_research(message):
+        return
+
+    await client.process_commands(message)
+
     if message.content.startswith('hello'):
         await message.channel.send('kkk')
     if message.content.startswith("play"):
         await message.channel.send("What do you want to play?")
-
 
 
 @client.event
@@ -176,7 +273,7 @@ async def on_reaction_add(reaction, user):
         return
     if (user.id == client.user.id):
         return
-    if reaction.emoji == '🏀':
+    if reaction.emoji == '\U0001F3C0':
         await Channel.send("sup bitch")
 
 
@@ -187,6 +284,7 @@ def ytVideoSearchLink(search, limit=1):
     return list
 
 
-
-
-client.run(os.environ.get('TOKEN'))
+token = os.environ.get('TOKEN')
+if not token:
+    raise SystemExit("TOKEN is empty - set it in the repo-root .env that docker-compose reads")
+client.run(token)
