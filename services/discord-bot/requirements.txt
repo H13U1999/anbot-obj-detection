@@ -1,8 +1,7 @@
-discord.py[voice]
+discord.py[voice]>=2.3
 emoji
 python-dotenv
-youtube_dl
+yt-dlp
 youtube-search-python
 PyNaCl
 requests
-flask
