@@ -7,6 +7,10 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
+    # Mapped here because the `secrets` context is not available in a step-level
+    # `if:` - only `env` is, so the guard below reads this instead.
+    env:
+      BOT_TOKEN: ${{ secrets.FLY_API_TOKEN_BOT }}
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -14,12 +18,17 @@ jobs:
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      # The discord bot (app: discord-ml-bot) was never part of this pipeline,
-      # so every push left it running whatever was last deployed by hand.
-      - working-directory: ./services/discord-bot/
+      # The discord bot (app: discord-ml-bot) was never part of this pipeline, so
+      # every push left it running whatever was last deployed by hand.
+      #
+      # FLY_API_TOKEN is app-scoped to the detection app and returns "unauthorized"
+      # for discord-ml-bot, so this step needs its own token in FLY_API_TOKEN_BOT.
+      # Until that secret is set the step is skipped rather than failing the run:
+      #   fly tokens create deploy -a discord-ml-bot
+      # then add the output as the repo secret FLY_API_TOKEN_BOT.
+      - name: Deploy discord bot (skipped until FLY_API_TOKEN_BOT is set)
+        if: ${{ env.BOT_TOKEN != '' }}
+        working-directory: ./services/discord-bot/
         run: flyctl deploy --remote-only
         env:
-          # FLY_API_TOKEN is app-scoped to the detection app, so it cannot deploy
-          # discord-ml-bot. Set FLY_API_TOKEN_BOT to a token for that app, or
-          # replace FLY_API_TOKEN with an org-scoped one and this falls back.
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_BOT || secrets.FLY_API_TOKEN }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_BOT }}
