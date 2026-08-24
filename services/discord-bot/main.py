@@ -42,16 +42,25 @@ TRIGGER = re.compile(r"^research[_ ]?for[_ ]?me\s*:?\s*(.*)$", re.IGNORECASE | r
 _in_flight = set()
 
 
+# Any mention token: <@id>, <@!id> (nickname form), or <@&id> (role). Typing
+# "@An bot" can resolve to either the bot user or the bot's auto-created managed
+# role, which encode differently but render identically - accept both.
+ANY_MENTION = re.compile(r"<@[!&]?\d+>")
+
+
+def _mentions_bot(message):
+    if client.user in message.mentions:
+        return True
+    me = message.guild.me if message.guild else None
+    return bool(me and any(role in message.role_mentions for role in me.roles))
+
+
 async def handle_research(message):
     """Return True if this message was a research request and was handled."""
-    # Match the literal mention rather than `client.user.mentioned_in`: that helper
-    # also fires on @everyone, and replying to one of the bot's own messages adds
-    # the bot to `message.mentions` without the user having typed anything.
-    mention = re.compile(r"<@!?%s>" % client.user.id)
-    if not mention.search(message.content):
+    if not _mentions_bot(message):
         return False
 
-    match = TRIGGER.match(mention.sub("", message.content).strip())
+    match = TRIGGER.match(ANY_MENTION.sub("", message.content).strip())
     if not match:
         return False
 
