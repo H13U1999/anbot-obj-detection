@@ -29,6 +29,7 @@ services:
     volumes:
       - ./services/discord-bot/:/app
     environment:
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
       PREFIX: "${PREFIX}"
       TOKEN: "${TOKEN}"
       DECT_API: "${DECT_API}"
