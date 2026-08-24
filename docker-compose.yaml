@@ -7,11 +7,13 @@ services:
     ports:
       - "8080:5000"
     volumes:
+      # This already mounts every file in the service dir, including app.py.
+      # Do not add per-file bind mounts on top of it: if the host path does not
+      # exist Docker creates it as a *directory*, then fails to mount it over a
+      # file in the image.
       - ./services/detection/:/app
-      - ./services/detection/main.py:/app/app.py
-      - ./services/detection/main.py:/app/main.py
-      - ./services/detection/yolov5x.ppt:/app/yolov5x.ppt
     environment:
+      PORT: "5000"
       FLASK_APP: "${FLASK_APP}"
       API_KEY: "${API_KEY}"
       AUTH_DOMAIN: "${AUTH_DOMAIN}"
@@ -26,8 +28,8 @@ services:
     restart: always
     volumes:
       - ./services/discord-bot/:/app
-      - ./services/discord-bot/main.py:/app/main.py
     environment:
       PREFIX: "${PREFIX}"
       TOKEN: "${TOKEN}"
-     
+      DECT_API: "${DECT_API}"
+      NTS_API: "${NTS_API}"
